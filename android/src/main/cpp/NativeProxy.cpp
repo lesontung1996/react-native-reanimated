@@ -39,10 +39,9 @@ Java_com_swmansion_reanimated_NativeProxy_install(JNIEnv* env,
 
     auto &runtime = *(facebook::jsi::Runtime *)runtimePtr;
 
-    jniRegistry.reset(new JNIRegistry(env));
-
     JavaVM* javaVM = nullptr;
     env->GetJavaVM(&javaVM);
+    jniRegistry.reset(new JNIRegistry(env, javaVM));
     std::shared_ptr<Scheduler> schedulerForModule((Scheduler*)new AndroidScheduler(javaVM, jniRegistry));
     scheduler = schedulerForModule;
 
@@ -52,9 +51,9 @@ Java_com_swmansion_reanimated_NativeProxy_install(JNIEnv* env,
     std::shared_ptr<MapperRegistry> mapperRegistry(new MapperRegistry(sharedValueRegistry));
     std::shared_ptr<ApplierRegistry> applierRegistry(new ApplierRegistry(mapperRegistry));
     std::shared_ptr<ErrorHandler> errorHandler((ErrorHandler*)new AndroidErrorHandler(
-      env,
-      schedulerForModule,
-      jniRegistry));
+        env,
+        schedulerForModule,
+        jniRegistry));
 
     std::unique_ptr<jsi::Runtime> animatedRuntime(static_cast<jsi::Runtime*>(facebook::hermes::makeHermesRuntime().release()));
 
@@ -109,7 +108,10 @@ Java_com_swmansion_reanimated_NativeProxy_shouldRerender(JNIEnv* env) {
 
 jobject sharedValueToJObject(JNIEnv* env, std::shared_ptr<SharedValue> sv) {
 
-  auto doubleValueOf = jniRegistry->getClassAndMethod(JavaMethodsUsed::DoubleValueOf, JNIMethodMode::static_method);
+  auto doubleValueOf = jniRegistry->getClassAndMethod(
+    JavaMethodsUsed::DoubleValueOf,
+    JNIMethodMode::static_method,
+    env);
   
   jobject result = nullptr;
 
@@ -137,14 +139,25 @@ jobject sharedValueToJObject(JNIEnv* env, std::shared_ptr<SharedValue> sv) {
 }
 
 jobject getChangedSharedValues(JNIEnv* env) {
+  auto arrayListConstructor = jniRegistry->getClassAndMethod(
+    JavaMethodsUsed::ArrayListInit,
+    JNIMethodMode::standard_method,
+    env);
+  auto arrayListAdd = jniRegistry->getClassAndMethod(
+    JavaMethodsUsed::ArrayListAdd,
+    JNIMethodMode::standard_method,
+    env);
 
-  auto arrayListConstructor = jniRegistry->getClassAndMethod(JavaMethodsUsed::ArrayListInit);
-  auto arrayListAdd = jniRegistry->getClassAndMethod(JavaMethodsUsed::ArrayListAdd);
-
-  auto pairConstructor = jniRegistry->getClassAndMethod(JavaMethodsUsed::PairInit);
+  auto pairConstructor = jniRegistry->getClassAndMethod(
+    JavaMethodsUsed::PairInit,
+    JNIMethodMode::standard_method,
+    env);
 
   // This is needed to go from double to Double (boxed)
-  auto integerValueOf = jniRegistry->getClassAndMethod(JavaMethodsUsed::IntegerValueOf, JNIMethodMode::static_method);
+  auto integerValueOf = jniRegistry->getClassAndMethod(
+    JavaMethodsUsed::IntegerValueOf,
+    JNIMethodMode::static_method,
+    env);
 
   // The list we're going to return:
   jobject list = env->NewObject(std::get<0>(arrayListConstructor), std::get<1>(arrayListConstructor));
