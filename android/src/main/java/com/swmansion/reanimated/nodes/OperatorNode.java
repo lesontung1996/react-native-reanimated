@@ -31,7 +31,7 @@ public class OperatorNode extends Node {
   private static abstract class SingleOperator implements Operator {
     @Override
     public double evaluate(Node[] input) {
-      return eval((Double) input[0].value());
+      return eval(input[0].doubleValue());
     }
 
     public abstract double eval(Double x);
@@ -40,7 +40,7 @@ public class OperatorNode extends Node {
   private static abstract class CompOperator implements Operator {
     @Override
     public double evaluate(Node[] input) {
-      return eval((Double) input[0].value(), (Double) input[1].value()) ? 1. : 0.;
+      return eval(input[0].doubleValue(), input[1].doubleValue()) ? 1. : 0.;
     }
 
     public abstract boolean eval(Double x, Double y);

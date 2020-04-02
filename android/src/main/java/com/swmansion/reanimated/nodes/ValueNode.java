@@ -21,6 +21,11 @@ public class ValueNode extends Node {
       mValue = config.getString("value");
     } else if (type == ReadableType.Number) {
       mValue = config.getDouble("value");
+      // integer ends with .0
+      Double mValueDouble = (Double)mValue;
+      if ((mValueDouble % 1) == 0){
+        mValue = mValueDouble.intValue();
+      }
     } else if (type == ReadableType.Null) {
       mValue = null;
     } else {

@@ -60,6 +60,8 @@ public abstract class Node {
     Object value = value();
     if (value == null) {
       return ZERO;
+    } else if (value instanceof Integer) {
+      return ((Integer) value).doubleValue();
     } else if (value instanceof Double) {
       return (Double) value;
     } else if (value instanceof Number) {
